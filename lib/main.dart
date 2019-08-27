@@ -1,3 +1,4 @@
+import 'package:english_words/english_words.dart' as prefix0;
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
 
@@ -8,15 +9,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'food shop',
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Welcome to food shop'),
-          actions: <Widget>[
-            IconButton(icon: Icon(Icons.shopping_cart))
-          ],
-        ),
-        body: Center(child: RandomWords()),
-      ),
+      home: RandomWords(),
     );
   }
 }
@@ -49,25 +42,55 @@ class _RandomWordsState extends State<RandomWords> {
     );
   }
 
+  Widget _buildSuggestions() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16.0),
+      itemBuilder: /*1*/ (context, i) {
+        if (i.isOdd) return Divider(); /*2*/
+
+        final index = i ~/ 2; /*3*/
+        if (index >= _suggestions.length) {
+          _suggestions.addAll(generateWordPairs().take(10)); /*4*/
+        }
+        return _buildRow(_suggestions[index]);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    Widget _buildSuggestions() {
-      return ListView.builder(
-        padding: const EdgeInsets.all(16.0),
-        itemBuilder: /*1*/ (context, i) {
-          if (i.isOdd) return Divider(); /*2*/
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Welcome to food shop'),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.shopping_cart),
+            onPressed: _pushSaved,
+          )
+        ],
+      ),
+      body: _buildSuggestions(),
+    );
+  }
 
-          final index = i ~/ 2; /*3*/
-          if (index >= _suggestions.length) {
-            _suggestions.addAll(generateWordPairs().take(10)); /*4*/
-          }
-          return _buildRow(_suggestions[index]);
-        },
-      );
-    }
+  void _pushSaved() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (BuildContext context) {
+        final Iterable<ListTile> tiles = _saved.map((WordPair pair) {
+          return ListTile(title: Text(pair.asPascalCase, style: _biggerFont));
+        });
+        final List<Widget> divided = ListTile.divideTiles(
+          context: context,
+          tiles: tiles,
+        ).toList();
 
-    return Container(
-      child: _buildSuggestions(),
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('Saved Suggestions'),
+          ),
+          body: ListView(children: divided),
+        );
+      }),
     );
   }
 }
